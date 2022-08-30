@@ -1,5 +1,8 @@
+open Location
+
 type ident = {
-    val: string
+    val: string,
+    pos: range
 }
 
 type rec tree =
@@ -11,6 +14,7 @@ type rec tree =
 
 and pat =
     | PVar(ident)
+    | PWild
     | PCons(ident, list<pat>)
 
 and equation = {
