@@ -7,25 +7,58 @@ type lexer_state = {
 
 type token =
     | Id(string)  // x
-    | Lambda     // λ
-    | Arrow      // →
-    | Dot        // .
-    | LPar       // (
-    | RPar       // )
-    | Colon      // :
-    | Pipe       // |
+    | Lambda      // λ
+    | Arrow       // →
+    | Dot         // .
+    | LPar        // (
+    | RPar        // )
+    | Colon       // :
+    | Pipe        // |
+    | Eq          // =
+    | Pi          // Π
     | Eof
 
+let print_token = tkn => 
+    switch tkn {
+    | Id(s) => "id(" ++ s ++ ")"
+    | Lambda => `λ`
+    | Arrow => `→`
+    | Dot => "."
+    | Pi  => "Π"
+    | LPar => "("
+    | RPar => ")"
+    | Colon => ":"
+    | Eq => "="
+    | Pipe => "|"
+    | Eof => "eof"
+    }
+
+let equal_token = (a, b) => 
+    switch (a,b) {
+    | (Id(a), Id(b)) => a == b
+    | (Lambda,Lambda) => true
+    | (Arrow,Arrow) => true
+    | (Dot,Dot) => true
+    | (LPar,LPar) => true
+    | (RPar,RPar) => true
+    | (Colon, Colon) => true
+    | (Pipe, Pipe) => true
+    | (Eof, Eof) => true
+    | (Pi, Pi) => true
+    | (Eq, Eq) => true
+    | _ => false
+    }
+
 let is_special = (char) => 
-    char == "λ" || char == "→" || char == "."  || char == "("  
- || char == ")" || char == ":" || char == "|"  
+    char == `λ` || char == `Π` || char == `→`|| char == "."  || char == "("  
+ || char == ")" || char == ":" || char == "|" || char == "="
 
 let is_useless = char => 
     char == "\n" || char == "\t" || char == "\r" || char == " "
 
 let is_id_letter = char => !is_useless(char) && !is_special(char)
 
-let get_char = (inp: string, on) => (String.make(1, String.get(inp, on.index))) 
+let get_char = (inp: string, on) => Js.String.get(inp, on.index)
 
 let accumulate_while = (state: lexer_state, fun: string => bool) => {
     let start = state.pos
@@ -43,15 +76,21 @@ let one_char_st = (state, chr) => {
     pos
 }
 
+let t_lam = `λ`;
+let t_arr = `→`;
+let t_pi  = `Π`;
+
 let rec lex = (state: lexer_state) =>
     if state.pos.index >= String.length(state.input) {
         ({start: state.pos, end: state.pos}, Eof)
     } else {
         let chr = get_char(state.input, state.pos)
         switch chr {
-        | "λ" => (one_char_st(state, chr), Lambda)
-        | "→" => (one_char_st(state, chr), Arrow)
+        | c if t_lam == c => (one_char_st(state, chr), Lambda)
+        | c if t_arr == c => (one_char_st(state, chr), Arrow)
+        | c if t_pi == c => (one_char_st(state, chr), Pi)
         | "." => (one_char_st(state, chr), Dot)
+        | "=" => (one_char_st(state, chr), Eq)
         | "(" => (one_char_st(state, chr), LPar)
         | ")" => (one_char_st(state, chr), RPar)
         | ":" => (one_char_st(state, chr), Colon)
