@@ -15,7 +15,10 @@ type token =
     | Colon       // :
     | Pipe        // |
     | Eq          // =
-    | Pi          // Π
+    | PiT         // Π
+    | Star        // ★
+    | In          // In
+    | Let         // Let
     | Eof
 
 let print_token = tkn => 
@@ -23,18 +26,22 @@ let print_token = tkn =>
     | Id(s) => "id(" ++ s ++ ")"
     | Lambda => `λ`
     | Arrow => `→`
+    | Star => `★`
     | Dot => "."
-    | Pi  => "Π"
+    | PiT => "Π"
     | LPar => "("
     | RPar => ")"
     | Colon => ":"
     | Eq => "="
+    | In => "'in'"
+    | Let => "'let'"
     | Pipe => "|"
     | Eof => "eof"
     }
 
 let equal_token = (a, b) => 
     switch (a,b) {
+    | (In, In) => true
     | (Id(a), Id(b)) => a == b
     | (Lambda,Lambda) => true
     | (Arrow,Arrow) => true
@@ -44,8 +51,10 @@ let equal_token = (a, b) =>
     | (Colon, Colon) => true
     | (Pipe, Pipe) => true
     | (Eof, Eof) => true
-    | (Pi, Pi) => true
+    | (PiT, PiT) => true
+    | (Let, Let) => true
     | (Eq, Eq) => true
+    | (Star, Star) => true
     | _ => false
     }
 
@@ -79,6 +88,7 @@ let one_char_st = (state, chr) => {
 let t_lam = `λ`;
 let t_arr = `→`;
 let t_pi  = `Π`;
+let t_star = `★`;
 
 let rec lex = (state: lexer_state) =>
     if state.pos.index >= String.length(state.input) {
@@ -88,7 +98,8 @@ let rec lex = (state: lexer_state) =>
         switch chr {
         | c if t_lam == c => (one_char_st(state, chr), Lambda)
         | c if t_arr == c => (one_char_st(state, chr), Arrow)
-        | c if t_pi == c => (one_char_st(state, chr), Pi)
+        | c if t_pi == c => (one_char_st(state, chr), PiT)
+        | c if t_star == c => (one_char_st(state, chr), Star)
         | "." => (one_char_st(state, chr), Dot)
         | "=" => (one_char_st(state, chr), Eq)
         | "(" => (one_char_st(state, chr), LPar)
@@ -100,6 +111,10 @@ let rec lex = (state: lexer_state) =>
             lex(state)
         | _   => 
             let (range, str) = accumulate_while(state, is_id_letter)
-            (range, Id(str))
+            switch str {
+            | "in"  => (range, In)
+            | "let" => (range, Let)
+            | str   => (range, Id(str))
+            }
         }
     }

@@ -1,8 +1,8 @@
 open Location
 
 type ident = {
-    val: string,
-    pos: range
+    iVal: string,
+    iPos: range
 }
 
 type rec tree =
@@ -40,10 +40,10 @@ and data = {
 
 let rec print_expr = (expr) => 
     switch expr {
-    | Var(ident) => ident.val
-    | Lam(ident, expr) => `(λ` ++ ident.val ++ ". " ++ print_expr(expr) ++ `)`
+    | Var(ident) => ident.iVal
+    | Lam(ident, expr) => `(λ` ++ ident.iVal ++ ". " ++ print_expr(expr) ++ `)`
     | App(a, b) => "(" ++ print_expr(a) ++ " " ++ print_expr(b) ++ ")"
-    | Pi(ident, a, b) => "((" ++ ident.val ++ ": " ++ print_expr(a) ++ ") -> " ++ print_expr(b) ++ ")"
-    | Let(ident, t, v, b) => "(let " ++ ident.val ++ ": " ++ print_expr(t) ++ " = " ++ print_expr(v) ++ " in " ++ print_expr(b) ++ ")"
-    | Type => `U`
+    | Pi(ident, a, b) => "((" ++ ident.iVal ++ ": " ++ print_expr(a) ++ ") -> " ++ print_expr(b) ++ ")"
+    | Let(ident, t, v, b) => "(let " ++ ident.iVal ++ ": " ++ print_expr(t) ++ " = " ++ print_expr(v) ++ " in " ++ print_expr(b) ++ ")"
+    | Type => `★`
     }

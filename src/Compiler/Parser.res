@@ -32,8 +32,8 @@ type error = {
 }
 
 type syntax_error = {
-    expected: option<token>,
-    got: token,
+    expected: option<string>,
+    got: string,
     on: range
 }
 
@@ -71,7 +71,7 @@ let eat = (parser_state, expected) => {
     if equal_token(expected, got) {
         (pos, got)
     } else {
-        raise(SyntaxError({expected: Some(expected), got, on: pos}))
+        raise(SyntaxError({expected: Some(print_token(expected)), got: print_token(got), on: pos}))
     }
 }
 
@@ -79,7 +79,7 @@ let eat_id = parser_state => {
     let (pos, got) = advance(parser_state);
     switch got {
     | Id(x) => (pos, x)
-    | got => raise(SyntaxError({expected: None, got, on: pos}))
+    | got => raise(SyntaxError({expected: None, got: print_token(got), on: pos}))
     }
 }
 
@@ -88,8 +88,8 @@ let peek = (parser_state) => {
 }
 
 let rec parse_ident = parser_state => {
-    let (pos, val) = eat_id(parser_state);
-    {val, pos}
+    let (iPos, iVal) = eat_id(parser_state);
+    {iVal, iPos}
 }
 
 and parse_lambda = (parser_state) => {
@@ -102,8 +102,8 @@ and parse_lambda = (parser_state) => {
 
 and parse_atom = parser_state => {
     switch peek(parser_state) {
-    | Id("Type") => {
-        let _ = parse_ident(parser_state);
+    | Star => {
+        let _ = eat(parser_state, Star);
         Type
     }
     | Id(_) => Var(parse_ident(parser_state))
@@ -113,14 +113,15 @@ and parse_atom = parser_state => {
         let _ = eat(parser_state, RPar);
         t
     }
-    | got    => raise(SyntaxError({expected: None, got, on: parser_state.next_pos}))
+    | got    => 
+        print_endline(print_token(got))
+        raise(SyntaxError({expected: None, got: print_token(got), on: parser_state.next_pos}))
     }
 }
 
 and parse_partial_call = (left, parser_state) => 
     switch peek(parser_state) {
-        | Id("in") | Id("let") => left
-        | Id(_) | LPar => {
+        | Id(_) | LPar | Star => {
             let right = parse_atom(parser_state)
             parse_partial_call(App(left, right), parser_state)
         }
@@ -133,16 +134,20 @@ and parse_call = parser_state =>
 
 and parse_arrow = parser_state => {
     let atom = parse_call(parser_state)
+    print_endline("Cur" ++ print_expr(atom))
     switch peek(parser_state) {
     | Arrow => 
         let _ = eat(parser_state, Arrow);
-        Pi({val: "_", pos: parser_state.current_pos}, atom, parse_arrow(parser_state))
-    | _ => atom
+        Pi({iVal: "_", iPos: parser_state.current_pos}, atom, parse_arrow(parser_state))
+    | x => {
+        print_endline("Next: " ++ print_token(x))
+        atom
+    }
     }
 }
 
 and parse_pi = parser_state => {
-    let _  = eat(parser_state, Pi);
+    let _  = eat(parser_state, PiT);
     let n  = parse_ident(parser_state);
     let _  = eat(parser_state, Colon);
     let t  = parse_expr(parser_state);
@@ -152,13 +157,13 @@ and parse_pi = parser_state => {
 }
 
 and parse_let = parser_state => {
-    let _  = eat(parser_state, Id("let"));
+    let _  = eat(parser_state, Let);
     let n  = parse_ident(parser_state);
     let _  = eat(parser_state, Colon);
     let t  = parse_expr(parser_state);
     let _  = eat(parser_state, Eq);
     let v  = parse_expr(parser_state);
-    let _  = eat(parser_state, Id("in"));
+    let _  = eat(parser_state, In);
     let b  = parse_expr(parser_state);
     Let(n, t, v, b)
 }
@@ -166,8 +171,8 @@ and parse_let = parser_state => {
 and parse_expr = parser_state => {
     switch peek(parser_state) {
     | Lambda    => parse_lambda(parser_state)
-    | Pi        => parse_pi(parser_state)
-    | Id("let") => parse_let(parser_state)
-    | got       => parse_arrow(parser_state)
+    | PiT       => parse_pi(parser_state)
+    | Let       => parse_let(parser_state)
+    | _         => parse_arrow(parser_state)
     }
 }
