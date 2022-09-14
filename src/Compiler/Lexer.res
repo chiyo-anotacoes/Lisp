@@ -17,8 +17,8 @@ type token =
     | Eq          // =
     | PiT         // Π
     | Star        // ★
-    | In          // In
-    | Let         // Let
+    | KwIn          // In
+    | KwLet         // Let
     | Eof
 
 let print_token = tkn => 
@@ -33,15 +33,15 @@ let print_token = tkn =>
     | RPar => ")"
     | Colon => ":"
     | Eq => "="
-    | In => "'in'"
-    | Let => "'let'"
+    | KwIn => "'in'"
+    | KwLet => "'let'"
     | Pipe => "|"
     | Eof => "eof"
     }
 
 let equal_token = (a, b) => 
     switch (a,b) {
-    | (In, In) => true
+    | (KwIn, KwIn) => true
     | (Id(a), Id(b)) => a == b
     | (Lambda,Lambda) => true
     | (Arrow,Arrow) => true
@@ -52,7 +52,7 @@ let equal_token = (a, b) =>
     | (Pipe, Pipe) => true
     | (Eof, Eof) => true
     | (PiT, PiT) => true
-    | (Let, Let) => true
+    | (KwLet, KwLet) => true
     | (Eq, Eq) => true
     | (Star, Star) => true
     | _ => false
@@ -112,8 +112,8 @@ let rec lex = (state: lexer_state) =>
         | _   => 
             let (range, str) = accumulate_while(state, is_id_letter)
             switch str {
-            | "in"  => (range, In)
-            | "let" => (range, Let)
+            | "in"  => (range, KwIn)
+            | "let" => (range, KwLet)
             | str   => (range, Id(str))
             }
         }

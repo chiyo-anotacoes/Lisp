@@ -113,9 +113,7 @@ and parse_atom = parser_state => {
         let _ = eat(parser_state, RPar);
         t
     }
-    | got    => 
-        print_endline(print_token(got))
-        raise(SyntaxError({expected: None, got: print_token(got), on: parser_state.next_pos}))
+    | got => raise(SyntaxError({expected: None, got: print_token(got), on: parser_state.next_pos}))
     }
 }
 
@@ -134,15 +132,11 @@ and parse_call = parser_state =>
 
 and parse_arrow = parser_state => {
     let atom = parse_call(parser_state)
-    print_endline("Cur" ++ print_expr(atom))
     switch peek(parser_state) {
     | Arrow => 
         let _ = eat(parser_state, Arrow);
         Pi({iVal: "_", iPos: parser_state.current_pos}, atom, parse_arrow(parser_state))
-    | x => {
-        print_endline("Next: " ++ print_token(x))
-        atom
-    }
+    | _ => atom
     }
 }
 
@@ -157,13 +151,13 @@ and parse_pi = parser_state => {
 }
 
 and parse_let = parser_state => {
-    let _  = eat(parser_state, Let);
+    let _  = eat(parser_state, KwLet);
     let n  = parse_ident(parser_state);
     let _  = eat(parser_state, Colon);
     let t  = parse_expr(parser_state);
     let _  = eat(parser_state, Eq);
     let v  = parse_expr(parser_state);
-    let _  = eat(parser_state, In);
+    let _  = eat(parser_state, KwIn);
     let b  = parse_expr(parser_state);
     Let(n, t, v, b)
 }
@@ -172,7 +166,7 @@ and parse_expr = parser_state => {
     switch peek(parser_state) {
     | Lambda    => parse_lambda(parser_state)
     | PiT       => parse_pi(parser_state)
-    | Let       => parse_let(parser_state)
+    | KwLet     => parse_let(parser_state)
     | _         => parse_arrow(parser_state)
     }
 }

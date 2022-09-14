@@ -1,4 +1,5 @@
 open Term
+open Context
 open Value
 
 let app = (fn, arg) =>
@@ -8,20 +9,24 @@ let app = (fn, arg) =>
     | _                 => failwith("Impossible D:")
     }
 
-let rec eval = (ctx, term) =>
-    switch term {
-    | Var(n)      => 
-        switch Belt.List.get(ctx, n) {
-        | Some(x) => x
-        | None => failwith("LOOOOL  " ++ string_of_int(n))
-        }
-    | Lam(n, v)   => VLam(n, arg => eval(list{arg, ...ctx}, v))
-    | App(f, a)   => app(eval(ctx, f), eval(ctx, a))
-    | Pi(n, t, b) => VPi(n, eval(ctx, t), arg => eval(list{arg, ...ctx}, b))
-    | Let(_, _, v, b) => eval(list{eval(ctx, v), ...ctx}, b)
-    | Type => VType
+let eval = (ctx, term) => {
+    let rec loop = (ctx, term) =>
+        switch term {
+        | Var(n)      => 
+            switch Belt.List.get(ctx.env, n) {
+            | Some(x) => x
+            | None => failwith("Error in de bruijin indices:  " ++ string_of_int(n))
+            }
+        | Lam(n, v)   => VLam(n, arg => loop(bind_val(ctx, arg), v))
+        | App(f, a)   => app(loop(ctx, f), loop(ctx, a))
+        | Pi(n, t, b) => 
+            let ty = loop(ctx, t)
+            VPi(n, ty, arg => loop(bind_val(ctx, arg), b))
+        | Let(_, _, v, b) => loop(bind_val(ctx, loop(ctx, v)), b)
+        | Type => VType
     }
-
+    loop(ctx, term)
+}
 let quote_stuck = (depth, stuck) => 
     switch stuck {
     | Rigid(lvl) => Var(depth - lvl - 1)
