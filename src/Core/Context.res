@@ -14,6 +14,12 @@ let bind = (ctx, name, val) =>
     , level: ctx.level + 1
     }
 
+let bind_ty = (ctx, name, ty, val) => 
+    { names: Belt.Map.String.set(ctx.names, name, (ty, ctx.level))
+    , env: list{val, ...ctx.env}
+    , level: ctx.level + 1
+    }
+
 let bind_val = (ctx, val) => 
     { ...ctx
     , env: list{val, ...ctx.env}

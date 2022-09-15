@@ -129,13 +129,15 @@ and parse_partial_call = (left, parser_state) =>
 and parse_call = parser_state => 
     parse_partial_call(parse_atom(parser_state), parser_state)
 
-
 and parse_arrow = parser_state => {
     let atom = parse_call(parser_state)
     switch peek(parser_state) {
     | Arrow => 
         let _ = eat(parser_state, Arrow);
         Pi({iVal: "_", iPos: parser_state.current_pos}, atom, parse_arrow(parser_state))
+    | Colon =>
+        let _ = eat(parser_state, Colon);
+        Ann(atom, parse_arrow(parser_state))
     | _ => atom
     }
 }

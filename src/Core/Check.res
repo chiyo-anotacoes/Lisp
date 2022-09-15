@@ -3,6 +3,10 @@ open Value
 open Unify
 open Eval
 open Context
+
+exception CannotFindVariable(string, Location.range)
+exception CannotInferLambda
+
 let rec check = (ctx, expr, ty) =>
     switch (expr, ty) {
     | (Lam(name, b), VPi(_, t, b')) =>
@@ -10,7 +14,7 @@ let rec check = (ctx, expr, ty) =>
         Term.Lam(name.iVal, evalB)
     | (expr, expected) =>
         let (elab, infered) = infer(ctx, expr)
-        unify(0, infered, expected)
+        unify(ctx, infered, expected)
         elab
     }
 
@@ -20,9 +24,15 @@ and infer = (ctx, expr) =>
     | Var(n) => 
         switch Belt.Map.String.get(ctx.names, n.iVal) {
         | Some((ty, lvl)) => (Term.Var(ctx.level - lvl - 1), ty)
-        | None => failwith("Cannot find variable '" ++ n.iVal ++ "'")
+        | None => raise(CannotFindVariable(n.iVal, n.iPos))
         }
     | Lam(_, _) => failwith("Cant infer lambda")
+    | Ann(f, t) => {
+        let elabA = check(ctx, t, VType)
+        let runT = eval(ctx, elabA)
+        let elabF = check(ctx, f, runT)
+        (Ann(elabF, elabA), runT)
+    }
     | App(f, a) => {
         let (elabF, fTy) = infer(ctx, f)
         switch fTy {

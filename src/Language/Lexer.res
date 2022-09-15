@@ -85,9 +85,9 @@ let one_char_st = (state, chr) => {
     pos
 }
 
-let t_lam = `λ`;
-let t_arr = `→`;
-let t_pi  = `Π`;
+let t_lam  = `λ`;
+let t_arr  = `→`;
+let t_pi   = `Π`;
 let t_star = `★`;
 
 let rec lex = (state: lexer_state) =>
@@ -96,9 +96,9 @@ let rec lex = (state: lexer_state) =>
     } else {
         let chr = get_char(state.input, state.pos)
         switch chr {
-        | c if t_lam == c => (one_char_st(state, chr), Lambda)
-        | c if t_arr == c => (one_char_st(state, chr), Arrow)
-        | c if t_pi == c => (one_char_st(state, chr), PiT)
+        | c if t_lam  == c => (one_char_st(state, chr), Lambda)
+        | c if t_arr  == c => (one_char_st(state, chr), Arrow)
+        | c if t_pi   == c => (one_char_st(state, chr), PiT)
         | c if t_star == c => (one_char_st(state, chr), Star)
         | "." => (one_char_st(state, chr), Dot)
         | "=" => (one_char_st(state, chr), Eq)

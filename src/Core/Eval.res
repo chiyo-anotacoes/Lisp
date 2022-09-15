@@ -19,6 +19,7 @@ let eval = (ctx, term) => {
             }
         | Lam(n, v)   => VLam(n, arg => loop(bind_val(ctx, arg), v))
         | App(f, a)   => app(loop(ctx, f), loop(ctx, a))
+        | Ann(f, _)   => loop(ctx, f)
         | Pi(n, t, b) => 
             let ty = loop(ctx, t)
             VPi(n, ty, arg => loop(bind_val(ctx, arg), b))
