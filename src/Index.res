@@ -10,9 +10,9 @@ open Term
 open Eval
 
 let input = `
-    let t : ★ = Π x : ★. x → x in
-    let x : t = λ_. λz. z in
-    x
+    let t : ★ = Π x : ★. Π x : ★. x → x in
+    let x : t  = λ_. λz. z in
+    x t x
 `
 
 let lex_state = {pos: {line: 1, column: 1, index: 0}, input}
@@ -25,9 +25,9 @@ let err : string => unit =  %raw(`console.error`)
 
 try {
     let (elab, t) = infer(empty_ctx, s)
-    Js.log(print_term(list{}, elab))
+    Js.log(print_term(list{}, quote(0, eval(Context.empty_ctx, elab))))
 } catch {
-    | Unify.UnifyMismatch(_, l, r) => err("Mismatch between:\n  " ++ print_term(list{}, quote(0, l)) ++ "\n and\n  " ++ print_term(list{}, quote(0, r)))
+    | Unify.UnifyMismatch(ctx, l, r) => err("Mismatch between:\n  " ++ print_term(list{}, quote(ctx.level, l)) ++ "\n and\n  " ++ print_term(ctx.values, quote(ctx.level, r)))
     | Parser.SyntaxError(x) => err("Syntax error: unexpected '" ++ x.got ++ "' on " ++ show_range(x.on))
     | Check.CannotFindVariable(x, r) => err("Type error: cannot find variable '" ++ x ++ "' on " ++ show_range(r))
     | Check.CannotInferLambda => err("Type error: cannot infer lambda")

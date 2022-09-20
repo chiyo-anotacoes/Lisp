@@ -1,27 +1,21 @@
 open Value
 
 type context = {
-    names: Belt.Map.String.t<(value, int)>,
-    env: list<value>,
+    types: Belt.Map.String.t<(value, int)>,
+    values: list<value>,
     level: int
 }
 
-let empty_ctx = {names: Belt.Map.String.empty, env: list{}, level: 0}
+let empty_ctx = {types: Belt.Map.String.empty, values: list{}, level: 0}
 
-let bind = (ctx, name, val) => 
-    { names: Belt.Map.String.set(ctx.names, name, (val, ctx.level))
-    , env: list{VStuck(Rigid(ctx.level), list{}), ...ctx.env}
-    , level: ctx.level + 1
-    }
-
-let bind_ty = (ctx, name, ty, val) => 
-    { names: Belt.Map.String.set(ctx.names, name, (ty, ctx.level))
-    , env: list{val, ...ctx.env}
+let bind = (ctx, name, val, ty) => 
+    { types: Belt.Map.String.set(ctx.types, name, (ty, ctx.level))
+    , values: list{val, ...ctx.values}
     , level: ctx.level + 1
     }
 
 let bind_val = (ctx, val) => 
-    { ...ctx
-    , env: list{val, ...ctx.env}
+    { ... ctx 
+    , values: list{val, ...ctx.values}
     , level: ctx.level + 1
     }

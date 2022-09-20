@@ -10,7 +10,8 @@ exception CannotInferLambda
 let rec check = (ctx, expr, ty) =>
     switch (expr, ty) {
     | (Lam(name, b), VPi(_, t, b')) =>
-        let evalB = check(bind(ctx, name.iVal, t), b, b'(VStuck(Rigid(ctx.level), list{})))
+        let var   = VStuck(Rigid(ctx.level), list{})
+        let evalB = check(bind(ctx, name.iVal, var, t), b, b'(var))
         Term.Lam(name.iVal, evalB)
     | (expr, expected) =>
         let (elab, infered) = infer(ctx, expr)
@@ -22,7 +23,7 @@ and infer = (ctx, expr) =>
     switch expr {
     | Type => (Term.Type, VType)
     | Var(n) => 
-        switch Belt.Map.String.get(ctx.names, n.iVal) {
+        switch Belt.Map.String.get(ctx.types, n.iVal) {
         | Some((ty, lvl)) => (Term.Var(ctx.level - lvl - 1), ty)
         | None => raise(CannotFindVariable(n.iVal, n.iPos))
         }
@@ -45,14 +46,15 @@ and infer = (ctx, expr) =>
     }
     | Pi(n, t, b) => {
         let elabT = check(ctx, t, VType)
-        let elabB = check(bind(ctx, n.iVal, eval(ctx, elabT)), b, VType)
+        let var   = VStuck(Rigid(ctx.level), list{})
+        let elabB = check(bind(ctx, n.iVal, var, eval(ctx, elabT)), b, VType)
         (Term.Pi(n.iVal, elabT, elabB), VType)
     }
     | Let(n, t, v, b) => {
         let elabT = check(ctx, t, VType)
         print_endline(Term.print_term(list{}, elabT) ++ " | " ++ print_expr(t))
         let elabV = check(ctx, v, eval(ctx, elabT))
-        let (elabB, resTy) = infer(bind(ctx, n.iVal, eval(ctx, elabT)), b)
+        let (elabB, resTy) = infer(bind(ctx, n.iVal, eval(ctx, elabV), eval(ctx, elabT)), b)
         (Term.Let(n.iVal, elabT, elabV, elabB), resTy)
     }
     }

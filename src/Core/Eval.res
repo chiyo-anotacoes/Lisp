@@ -13,7 +13,7 @@ let eval = (ctx, term) => {
     let rec loop = (ctx, term) =>
         switch term {
         | Var(n)      => 
-            switch Belt.List.get(ctx.env, n) {
+            switch Belt.List.get(ctx.values, n) {
             | Some(x) => x
             | None => failwith("Error in de bruijin indices:  " ++ string_of_int(n))
             }
