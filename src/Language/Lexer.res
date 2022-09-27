@@ -7,6 +7,7 @@ type lexer_state = {
 
 type token =
     | Id(string)  // x
+    | Num(int)    // 123
     | Lambda      // λ
     | Arrow       // →
     | Dot         // .
@@ -30,6 +31,7 @@ let print_token = tkn =>
     | Dot => "."
     | PiT => "Π"
     | LPar => "("
+    | Num(s) => string_of_int(s)
     | RPar => ")"
     | Colon => ":"
     | Eq => "="
@@ -64,6 +66,8 @@ let is_special = (char) =>
 
 let is_useless = char => 
     char == "\n" || char == "\t" || char == "\r" || char == " "
+
+let is_num = char => String.get(char, 0) >= '0' && String.get(char, 0) <= '9'
 
 let is_id_letter = char => !is_useless(char) && !is_special(char)
 
@@ -109,6 +113,9 @@ let rec lex = (state: lexer_state) =>
         | c if is_useless(c) => 
             let _ = accumulate_while(state, is_useless)
             lex(state)
+        | c if is_num(c)   => 
+            let (range, str) = accumulate_while(state, is_num)
+            (range, Num(int_of_string(str)))
         | _   => 
             let (range, str) = accumulate_while(state, is_id_letter)
             switch str {

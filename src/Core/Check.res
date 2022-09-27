@@ -22,6 +22,7 @@ let rec check = (ctx, expr, ty) =>
 
 and infer = (ctx, expr) => 
     switch expr {
+    | Numb(r, x) => (Term.Num(r, x), VStuck(r, Top("Nat"), list{}))
     | Type(r) => (Term.Type(r), VType(r))
     | Var(n) => 
         switch Belt.Map.String.get(ctx.types, n.iVal) {

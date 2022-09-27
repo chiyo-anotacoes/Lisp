@@ -21,6 +21,12 @@ and loop_unify = (depth, left, right) => {
         loop_unify(depth + 1, v(VStuck(r, Rigid(depth), list{})), v'(VStuck(r, Rigid(depth), list{})))
     | (VStuck(_, Rigid(x), s), VStuck(_, Rigid(x'), s')) if x == x' =>
         unify_spine(depth, s, s')
+    | (VStuck(_, Top(x), s), VStuck(_, Top(x'), s')) if x == x' =>
+        unify_spine(depth, s, s')
+    | (VStuck(_, Top(_), _s), t) =>
+        loop_unify(depth, failwith("Unimplemented"), t)
+    | (t, VStuck(_, Top(_), _s)) =>
+        loop_unify(depth, t, failwith("Unimplemented"))
     | _ => 
         raise(SurfaceUnifyMismatch)
     }

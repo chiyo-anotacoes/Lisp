@@ -37,7 +37,11 @@ editor.on('change', res => {
     }
 })
 
-export const setOnChange = (f) => { changeEvent = f }
+export const setOnChange = (f) => { 
+    editor.setValue(localStorage.getItem('ablablabla'))
+    changeEvent = f
+    f(localStorage.getItem('ablablabla'))
+ }
 
 let doc = document.getElementById("result")
 
@@ -52,9 +56,6 @@ export const mark = (ranges) => {
         })
     )
 }
-
-console.log(localStorage.getItem('ablablabla'))
-editor.setValue(localStorage.getItem('ablablabla'))
 
 
 setInterval(() => {

@@ -7,6 +7,7 @@ type ident = {
 
 type rec tree =
     | Var(ident)
+    | Numb(range, int)
     | Lam(range, ident, tree)
     | App(range, tree, tree)
     | Pi(range, ident, tree, tree)
@@ -41,6 +42,7 @@ and data = {
 
 let get_range = (expr) => 
     switch expr {
+    | Numb(r, _) => r
     | Var(i) => i.iPos
     | Lam(r, _, _) => r
     | App(r, _, _) => r
@@ -53,6 +55,7 @@ let get_range = (expr) =>
 let rec print_expr = (expr) => 
     switch expr {
     | Var(ident) => ident.iVal
+    | Numb(_, n) => string_of_int(n)
     | Lam(_, ident, expr) => `(λ` ++ ident.iVal ++ ". " ++ print_expr(expr) ++ `)`
     | App(_, a, b) => "(" ++ print_expr(a) ++ " " ++ print_expr(b) ++ ")"
     | Ann(_, a, b) => "(" ++ print_expr(a) ++ " : " ++ print_expr(b) ++ ")"

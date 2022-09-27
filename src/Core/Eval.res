@@ -12,11 +12,13 @@ let app = (fn, arg) =>
 let eval = (ctx, term) => {
     let rec loop = (ctx, term) =>
         switch term {
+        | Num(r, t) => VNum(r, t)
         | Var(_, n)      => 
             switch Belt.List.get(ctx.values, n) {
             | Some(x) => x
             | None => failwith("Error in de bruijin indices:  " ++ string_of_int(n))
             }
+        | Top(_, _) => failwith("Unimplemented")
         | Lam(r, n, v)   => VLam(r, n, arg => loop(bind_val(ctx, arg), v))
         | App(_, f, a)   => app(loop(ctx, f), loop(ctx, a))
         | Ann(_, f, _)   => loop(ctx, f)
@@ -31,10 +33,12 @@ let eval = (ctx, term) => {
 let quote_stuck = (range, depth, stuck) => 
     switch stuck {
     | Rigid(lvl) => Var(range, depth - lvl - 1)
+    | Top(res) => Term.Top(range, res)
     }
 
 let rec quote = (depth, value) =>
     switch value {
+    | VNum(r, t) => Num(r, t)
     | VLam(r, n, b)        => Lam(r, n, quote(depth + 1, b(VStuck(r, Rigid(depth), list{}))))
     | VPi(r, n, t, b)      => Pi(r, n, quote(depth, t), quote(depth + 1, b(VStuck(r, Rigid(depth), list{}))))
     | VLet(r, n, v, t, b)  => Let(r, n, quote(depth, t), quote(depth, v), quote(depth + 1, b(VStuck(r, Rigid(depth), list{}))))

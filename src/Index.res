@@ -40,11 +40,3 @@ let change = input => {
 }
 
 setOnChange(change)
-
-let input = `
-let t : ★ = Π x : ★. x → x in
-let x : t  = λ_. λz. z in
-x
-`
-
-change(input)

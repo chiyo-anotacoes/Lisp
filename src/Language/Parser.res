@@ -170,6 +170,10 @@ and parse_let = parser_state => {
 
 and parse_expr = parser_state => {
     switch peek(parser_state) {
+    | Num(x)    => {
+        let (pos, _) = advance(parser_state);
+        Numb(pos, x)
+    }
     | Lambda    => parse_lambda(parser_state)
     | PiT       => parse_pi(parser_state)
     | KwLet     => parse_let(parser_state)
