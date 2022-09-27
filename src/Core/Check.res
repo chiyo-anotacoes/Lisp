@@ -5,56 +5,57 @@ open Eval
 open Context
 
 exception CannotFindVariable(string, Location.range)
-exception CannotInferLambda
+exception CannotInferLambda(Location.range)
+exception CannotApply(Location.range, Term.term)
 
 let rec check = (ctx, expr, ty) =>
     switch (expr, ty) {
-    | (Lam(name, b), VPi(_, t, b')) =>
-        let var   = VStuck(Rigid(ctx.level), list{})
+    | (Lam(r', name, b), VPi(r, _, t, b')) =>
+        let var   = VStuck(r, Rigid(ctx.level), list{})
         let evalB = check(bind(ctx, name.iVal, var, t), b, b'(var))
-        Term.Lam(name.iVal, evalB)
+        Term.Lam(r', name.iVal, evalB)
     | (expr, expected) =>
         let (elab, infered) = infer(ctx, expr)
-        unify(ctx, infered, expected)
+        unify(ctx, get_range(expr), infered, expected)
         elab
     }
 
 and infer = (ctx, expr) => 
     switch expr {
-    | Type => (Term.Type, VType)
+    | Type(r) => (Term.Type(r), VType(r))
     | Var(n) => 
         switch Belt.Map.String.get(ctx.types, n.iVal) {
-        | Some((ty, lvl)) => (Term.Var(ctx.level - lvl - 1), ty)
+        | Some((ty, lvl)) => (Term.Var(n.iPos, ctx.level - lvl - 1), ty)
         | None => raise(CannotFindVariable(n.iVal, n.iPos))
         }
-    | Lam(_, _) => failwith("Cant infer lambda")
-    | Ann(f, t) => {
-        let elabA = check(ctx, t, VType)
+    | Lam(r, _, _) => raise(CannotInferLambda(r))
+    | Ann(r, f, t) => {
+        let elabA = check(ctx, t, VType(get_range(t)))
         let runT = eval(ctx, elabA)
         let elabF = check(ctx, f, runT)
-        (Ann(elabF, elabA), runT)
+        (Ann(r, elabF, elabA), runT)
     }
-    | App(f, a) => {
+    | App(r, f, a) => {
         let (elabF, fTy) = infer(ctx, f)
         switch fTy {
-        | VPi(_, t, b') => {
+        | VPi(_, _, t, b') => {
             let elabA = check(ctx, a, t)
-            (Term.App(elabF, elabA), b'(eval(ctx, elabA)))
+            (Term.App(r, elabF, elabA), b'(eval(ctx, elabA)))
         }
-        | _ => failwith("Not a function to be applied")
+        | e => raise(CannotApply(get_range(f), quote(ctx.level, e)))
         }
     }
-    | Pi(n, t, b) => {
-        let elabT = check(ctx, t, VType)
-        let var   = VStuck(Rigid(ctx.level), list{})
-        let elabB = check(bind(ctx, n.iVal, var, eval(ctx, elabT)), b, VType)
-        (Term.Pi(n.iVal, elabT, elabB), VType)
+    | Pi(r, n, t, b) => {
+        let elabT = check(ctx, t, VType(r))
+        let var   = VStuck(r, Rigid(ctx.level), list{})
+        let elabB = check(bind(ctx, n.iVal, var, eval(ctx, elabT)), b, VType(r))
+        (Term.Pi(r, n.iVal, elabT, elabB), VType(r))
     }
-    | Let(n, t, v, b) => {
-        let elabT = check(ctx, t, VType)
-        print_endline(Term.print_term(list{}, elabT) ++ " | " ++ print_expr(t))
+    | Let(r, n, t, v, b) => {
+        let elabT = check(ctx, t, VType(r))
         let elabV = check(ctx, v, eval(ctx, elabT))
+        print_endline("Quoted '" ++ Term.print_term(list{}, elabT) ++ "'")
         let (elabB, resTy) = infer(bind(ctx, n.iVal, eval(ctx, elabV), eval(ctx, elabT)), b)
-        (Term.Let(n.iVal, elabT, elabV, elabB), resTy)
+        (Term.Let(r, n.iVal, elabT, elabV, elabB), resTy)
     }
     }

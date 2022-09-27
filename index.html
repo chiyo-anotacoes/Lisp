@@ -2,10 +2,76 @@
 
 <html>
   <head>
+    <meta charset="UTF-8">
     <title>Fast Bare Rescript React</title>
+    <style>
+      .split {
+          display: flex;
+          flex-direction: row;
+          height: 100vh;
+          width: 100vw;
+      }
+
+      .gutter {
+          padding: 0px;
+          background-color: #eee;
+          background-repeat: no-repeat;
+          background-position: 50%;
+      }
+
+      .gutter.gutter-horizontal {
+          background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+          cursor: col-resize;
+      }
+      
+      body {
+        margin: 0px;
+        font-family: Fira Code !important;
+      }
+
+      #code-block {
+        width: 100%;
+        height: 100%
+      }
+
+      .CodeMirror {
+        border: 0px solid #eee;
+        height: 100vh !important;
+        font-size: 20px;
+      }
+
+      #split-1 {
+        padding: 10px;
+        font-size: 15px;
+      }
+
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/firacode/6.2.0/fira_code.css" integrity="sha512-LaxQmGd9k/pW51CsEy2nLIlbUXCgsyvUEVT5fSguN2b2OBwHjMi2aiUdEEXSMg8Jvy+bCB01as61aNrHnL2DYQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/juejin.min.css" integrity="sha512-FpFNwHMUkU0AE2bj1ZJ+Spvq40Mb+G23FZyXdWBOnDXXqlixT/aXNBauBvPMao82l98G26LC6HVYo44Pg3pwyg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   </head>
   <body>
-    <div id="root_react_element"></div>
+    <div class="split">
+      <div id="split-0">
+        <textarea id="code-block">
+let t : ★ = Π x : ★. x → x in
+let x : t  = λ_. λz. z in
+x
+        </textarea>
+      </div>
+      <div id="split-1">
+        <div id="result">
+
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+
+    <script src="https://codemirror.net/5/addon/edit/closebrackets.js"></script>
+    <script src="https://codemirror.net/5/addon/search/searchcursor.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.2/split.min.js"></script>
     <script type="module" src="./lib/es6_global/src/Index.bs.js"></script>
   </body>
 </html>

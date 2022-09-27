@@ -21,5 +21,7 @@ let empty_point = {line: 1, column: 1, index: 0}
 
 let one_col = (pos) => {start:pos, end: next_point(pos, "_")}
 
+let mix = ({start, end: _}, {start: _, end}) => {start, end}
+
 let show_point = ({line, column}) => string_of_int(line) ++ "-" ++ string_of_int(column)
 let show_range = ({start, end}) => show_point(start) ++ ":" ++ show_point(end)

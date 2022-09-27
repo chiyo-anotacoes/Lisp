@@ -93,18 +93,18 @@ let rec parse_ident = parser_state => {
 }
 
 and parse_lambda = (parser_state) => {
-    let _       = eat(parser_state, Lambda);
+    let (i, _)  = eat(parser_state, Lambda);
     let n       = parse_ident(parser_state);
     let _       = eat(parser_state, Dot);
     let e       = parse_expr(parser_state);
-    Lam(n, e)
+    Lam(mix(i, get_range(e)), n, e)
 }
 
 and parse_atom = parser_state => {
     switch peek(parser_state) {
     | Star => {
-        let _ = eat(parser_state, Star);
-        Type
+        let (p, _) = eat(parser_state, Star);
+        Type(p)
     }
     | Id(_) => Var(parse_ident(parser_state))
     | LPar => {
@@ -117,43 +117,47 @@ and parse_atom = parser_state => {
     }
 }
 
-and parse_partial_call = (left, parser_state) => 
+and parse_partial_call = (range, left, parser_state) => 
     switch peek(parser_state) {
         | Id(_) | LPar | Star => {
             let right = parse_atom(parser_state)
-            parse_partial_call(App(left, right), parser_state)
+            parse_partial_call(range, App(range, left, right), parser_state)
         }
         | _ => left
     }
 
-and parse_call = parser_state => 
-    parse_partial_call(parse_atom(parser_state), parser_state)
+and parse_call = parser_state => {
+    let res = parse_atom(parser_state)
+    parse_partial_call(get_range(res), res, parser_state)
+}
 
 and parse_arrow = parser_state => {
     let atom = parse_call(parser_state)
     switch peek(parser_state) {
     | Arrow => 
         let _ = eat(parser_state, Arrow);
-        Pi({iVal: "_", iPos: parser_state.current_pos}, atom, parse_arrow(parser_state))
+        let res = parse_arrow(parser_state);
+        Pi(mix(get_range(atom), get_range(res)), {iVal: "_", iPos: parser_state.current_pos}, atom, res)
     | Colon =>
         let _ = eat(parser_state, Colon);
-        Ann(atom, parse_arrow(parser_state))
+        let res = parse_arrow(parser_state)
+        Ann(mix(get_range(atom), get_range(res)), atom, res)
     | _ => atom
     }
 }
 
 and parse_pi = parser_state => {
-    let _  = eat(parser_state, PiT);
+    let (i, _) = eat(parser_state, PiT);
     let n  = parse_ident(parser_state);
     let _  = eat(parser_state, Colon);
     let t  = parse_expr(parser_state);
     let _  = eat(parser_state, Dot);
     let b  = parse_expr(parser_state);
-    Pi(n, t, b)
+    Pi(mix(i, get_range(b)), n, t, b)
 }
 
 and parse_let = parser_state => {
-    let _  = eat(parser_state, KwLet);
+    let (i, _) = eat(parser_state, KwLet);
     let n  = parse_ident(parser_state);
     let _  = eat(parser_state, Colon);
     let t  = parse_expr(parser_state);
@@ -161,7 +165,7 @@ and parse_let = parser_state => {
     let v  = parse_expr(parser_state);
     let _  = eat(parser_state, KwIn);
     let b  = parse_expr(parser_state);
-    Let(n, t, v, b)
+    Let(mix(i, get_range(b)), n, t, v, b)
 }
 
 and parse_expr = parser_state => {
