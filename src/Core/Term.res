@@ -25,6 +25,19 @@ let get_range = (term) =>
     | Type(range) => range
     }
 
+let set_range = (new_range, term) => 
+    switch term {
+    | Num(_, t) => Num(new_range, t)
+    | Var(_, ident) => Var(new_range, ident)
+    | Top(_, n) => Top(new_range, n)
+    | Lam(_, ident, term) => Lam(new_range, ident, term)
+    | App(_, a, b) => App(new_range, a, b)
+    | Ann(_, a, b) => Ann(new_range, a, b)
+    | Pi(_, ident, a, b) => Pi(new_range, ident, a, b)
+    | Let(_, ident, t, v, b) => Let(new_range, ident, t, v, b)
+    | Type(_) => Type(new_range)
+    }
+
 let rec print_term = (ctx, term) => 
     switch term {
     | Num(_, t) => string_of_int(t)

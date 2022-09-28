@@ -18,8 +18,14 @@ let change = input => {
 
     try {
         let s = parse_expr(new_parser_state(lex_state))
-        let (_, t) = infer(empty_ctx, s)
-        setRes(print_term(list{}, quote(0, t)))
+        let tnat = Value.vtop(empty_range, "Nat")
+        let pi = (t, b) => Value.VPi(empty_range, "_", tnat, _ => b)
+        let ctx = add_top(
+                add_top(empty_ctx, "Nat", Term.Top(empty_range, "Nat"), Value.VType(empty_range)),
+                "+", Term.Top(empty_range, "+"), pi(tnat, pi(tnat, tnat))
+            )
+        let (res, t) = infer(ctx, s)
+        setRes(print_term(list{}, quote(0, eval(ctx, res))) ++ "<br>" ++ print_term(list{}, quote(0, t)))
     } catch {
         | Unify.UnifyMismatch(ctx, ra, l, r) => 
             mark([ra, Value.get_val_range(r)])

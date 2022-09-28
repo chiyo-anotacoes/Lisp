@@ -1,5 +1,26 @@
 Split(['#split-0', '#split-1'])
 
+/*
+
+let ℕ : ★     
+ = Π nat: ★. (nat → nat) → nat → nat
+in
+
+let z : ℕ     
+ = λt. λs. λz. z
+in
+
+let s : ℕ → ℕ 
+ = λn. λt. λs. λz. s (n t s z)
+in
+
+let a : ★ → Nat 
+  = λx. 2
+in
+
+(a 3123)
+
+*/
 let changeEvent;
 
 let editor = CodeMirror.fromTextArea(document.getElementById("code-block"), {

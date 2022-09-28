@@ -12,6 +12,8 @@ type rec value =
     | VLet(range, string, value, value, value => value)
     | VType(range)
 
+let vtop = (range, name) => VStuck(range, Top(name), list{})
+
 let get_val_range = value =>
     switch value {
     | VLam(r, _, _)        => r

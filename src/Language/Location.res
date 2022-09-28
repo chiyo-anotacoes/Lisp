@@ -19,6 +19,8 @@ let next_point = (point, char) =>
 
 let empty_point = {line: 1, column: 1, index: 0}
 
+let empty_range = {start: empty_point, end: empty_point}
+
 let one_col = (pos) => {start:pos, end: next_point(pos, "_")}
 
 let mix = ({start, end: _}, {start: _, end}) => {start, end}

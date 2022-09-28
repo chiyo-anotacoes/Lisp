@@ -4,6 +4,19 @@ open Value
 
 let app = (fn, arg) =>
     switch fn {
+    | VStuck(r, Top("+"), spine) => {
+        if Belt.List.length(spine) == 1 {
+            let t = Belt.List.reduce(Belt.List.concat(spine, list{arg}), 0, (a, b) => {
+                switch b {
+                | VNum(_, n1) => a + n1
+                | _ => a
+                }
+            });
+            VNum(r, t)
+        } else {
+            VStuck(r, Top("+"), Belt.List.concat(spine, list{arg}))
+        }
+    }
     | VStuck(r, st, spine) => VStuck(r, st, Belt.List.concat(spine, list{arg}))
     | VLam(_, _, f)        => f(arg)
     | _                    => failwith("Impossible D:")
@@ -18,7 +31,7 @@ let eval = (ctx, term) => {
             | Some(x) => x
             | None => failwith("Error in de bruijin indices:  " ++ string_of_int(n))
             }
-        | Top(_, _) => failwith("Unimplemented")
+        | Top(r, n) => VStuck(r, Top(n), list{})
         | Lam(r, n, v)   => VLam(r, n, arg => loop(bind_val(ctx, arg), v))
         | App(_, f, a)   => app(loop(ctx, f), loop(ctx, a))
         | Ann(_, f, _)   => loop(ctx, f)

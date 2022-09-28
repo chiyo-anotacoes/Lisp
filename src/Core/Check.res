@@ -27,7 +27,11 @@ and infer = (ctx, expr) =>
     | Var(n) => 
         switch Belt.Map.String.get(ctx.types, n.iVal) {
         | Some((ty, lvl)) => (Term.Var(n.iPos, ctx.level - lvl - 1), ty)
-        | None => raise(CannotFindVariable(n.iVal, n.iPos))
+        | None => 
+            switch Belt.Map.String.get(ctx.top, n.iVal) {
+            | Some((res, ty)) => (Term.set_range(n.iPos, res), ty)
+            | None => raise(CannotFindVariable(n.iVal, n.iPos))
+            }
         }
     | Lam(r, _, _) => raise(CannotInferLambda(r))
     | Ann(r, f, t) => {

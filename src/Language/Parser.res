@@ -102,6 +102,10 @@ and parse_lambda = (parser_state) => {
 
 and parse_atom = parser_state => {
     switch peek(parser_state) {
+    | Num(x)    => {
+        let (pos, _) = advance(parser_state);
+        Numb(pos, x)
+    }
     | Star => {
         let (p, _) = eat(parser_state, Star);
         Type(p)
@@ -119,7 +123,7 @@ and parse_atom = parser_state => {
 
 and parse_partial_call = (range, left, parser_state) => 
     switch peek(parser_state) {
-        | Id(_) | LPar | Star => {
+        | Id(_) | LPar | Star | Num(_) => {
             let right = parse_atom(parser_state)
             parse_partial_call(range, App(range, left, right), parser_state)
         }
@@ -170,10 +174,6 @@ and parse_let = parser_state => {
 
 and parse_expr = parser_state => {
     switch peek(parser_state) {
-    | Num(x)    => {
-        let (pos, _) = advance(parser_state);
-        Numb(pos, x)
-    }
     | Lambda    => parse_lambda(parser_state)
     | PiT       => parse_pi(parser_state)
     | KwLet     => parse_let(parser_state)
