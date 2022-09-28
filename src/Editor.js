@@ -14,11 +14,23 @@ let s : ℕ → ℕ
  = λn. λt. λs. λz. s (n t s z)
 in
 
-let a : ★ → Nat 
-  = λx. 2
+let eq_t : ★
+ = Π typ: ★. typ → typ → ★
+in 
+
+let ≡ : eq_t
+ = λt. λa. λb. Πeq: eq_t. (Πtp:★. Πa:tp. (eq tp a a)) → eq t a b
 in
 
-(a 3123)
+let refl : Πtyp: ★. Πa:typ. (≡ typ a a)
+ = λt. λb. λeq. λref. (ref t b)
+in
+
+let eqeqeq : ≡ Nat 1 2
+ = refl
+in
+
+eqeqeq
 
 */
 let changeEvent;
